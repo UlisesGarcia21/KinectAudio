@@ -1,0 +1,13 @@
+c:\users\ulises\documents\visual studio 2013\Projects\kinectpruebasonido\kinectpruebasonido\bin\Debug\kinectpruebasonido.exe.config
+c:\users\ulises\documents\visual studio 2013\Projects\kinectpruebasonido\kinectpruebasonido\bin\Debug\kinectpruebasonido.exe
+c:\users\ulises\documents\visual studio 2013\Projects\kinectpruebasonido\kinectpruebasonido\bin\Debug\kinectpruebasonido.pdb
+c:\users\ulises\documents\visual studio 2013\Projects\kinectpruebasonido\kinectpruebasonido\obj\Debug\kinectpruebasonido.csprojResolveAssemblyReference.cache
+c:\users\ulises\documents\visual studio 2013\Projects\kinectpruebasonido\kinectpruebasonido\obj\Debug\MainWindow.baml
+c:\users\ulises\documents\visual studio 2013\Projects\kinectpruebasonido\kinectpruebasonido\obj\Debug\MainWindow.g.cs
+c:\users\ulises\documents\visual studio 2013\Projects\kinectpruebasonido\kinectpruebasonido\obj\Debug\App.g.cs
+c:\users\ulises\documents\visual studio 2013\Projects\kinectpruebasonido\kinectpruebasonido\obj\Debug\kinectpruebasonido_MarkupCompile.cache
+c:\users\ulises\documents\visual studio 2013\Projects\kinectpruebasonido\kinectpruebasonido\obj\Debug\kinectpruebasonido.g.resources
+c:\users\ulises\documents\visual studio 2013\Projects\kinectpruebasonido\kinectpruebasonido\obj\Debug\kinectpruebasonido.Properties.Resources.resources
+c:\users\ulises\documents\visual studio 2013\Projects\kinectpruebasonido\kinectpruebasonido\obj\Debug\kinectpruebasonido.csproj.GenerateResource.Cache
+c:\users\ulises\documents\visual studio 2013\Projects\kinectpruebasonido\kinectpruebasonido\obj\Debug\kinectpruebasonido.exe
+c:\users\ulises\documents\visual studio 2013\Projects\kinectpruebasonido\kinectpruebasonido\obj\Debug\kinectpruebasonido.pdb
