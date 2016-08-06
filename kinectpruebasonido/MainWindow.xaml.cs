@@ -63,6 +63,14 @@ namespace kinectpruebasonido
                 try
                 {
                     this.sensorActivo.Start();
+                    this.sensorActivo.AudioSource.BeamAngleChanged += this.CampoAudioModificado; //Controlador de evento BeamAngleChanged
+                    this.sensorActivo.AudioSource.SoundSourceAngleChanged += this.FuenteAudioModificada;  //Controlador de evento SoundSourceAngleChanged
+                    this.registroAudio = this.sensorActivo.AudioSource.Start();  //Iniciar registro de audio
+
+                    //Iniciar canal separado para adquisición de audio
+                    this.lectura = true;    //Activar registro de audio
+                    this.canalLectura = new Thread(CanalLecturaAudio);  //Crear nuevo canal para registro de audio
+                    this.canalLectura.Start();  //Iniciar registro de audio
                 }
                 catch(IOException)
                 {
@@ -71,17 +79,8 @@ namespace kinectpruebasonido
             }
             if(null == this.sensorActivo)
             {
-                MessageBox.Show("Sensor desconectado");
+                this.textoBarraEstado.Text = Properties.Resources.NoKinectReady;
             }
-                        
-                this.sensorActivo.AudioSource.BeamAngleChanged += this.CampoAudioModificado; //Controlador de evento BeamAngleChanged
-                this.sensorActivo.AudioSource.SoundSourceAngleChanged += this.FuenteAudioModificada;  //Controlador de evento SoundSourceAngleChanged
-                this.registroAudio = this.sensorActivo.AudioSource.Start();  //Iniciar registro de audio
-
-                //Iniciar canal separado para adquisición de audio
-                this.lectura = true;    //Activar registro de audio
-                this.canalLectura = new Thread(CanalLecturaAudio);  //Crear nuevo canal para registro de audio
-                this.canalLectura.Start();  //Iniciar registro de audio
         }
 
         private void DetenerRegistroAudio(object sender, CancelEventArgs e) //Método para finalizar adquisición de audio
