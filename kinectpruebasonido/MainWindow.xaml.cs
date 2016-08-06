@@ -47,7 +47,7 @@ namespace kinectpruebasonido
             InitializeComponent();  //Iniciar componentes de ventana
         }
 
-        private void IniciarKinect(object sender, RoutedEventArgs e) //Método privado, estático y sin retorno que inicia sensor Kinect
+        private void IniciarKinect(object sender, RoutedEventArgs e) //Método privado, estático y sin retorno que indica modo de iniciar la ventana principal
         {
             foreach (var sensorPotencial in KinectSensor.KinectSensors)
             {
@@ -104,6 +104,7 @@ namespace kinectpruebasonido
         private void CampoAudioModificado(object sender, BeamAngleChangedEventArgs e)   //Método que actúa como controlador de evento BeamAngleChanged
         {
             rotacionCono.Angle = -e.Angle;  //Mostrar dirección de campo de audio cada vez que se modifica
+            textoAnguloCono.Text = string.Format(CultureInfo.CurrentCulture, Properties.Resources.CampoSonido, e.Angle.ToString("0", CultureInfo.CurrentCulture));
         }
 
         private void FuenteAudioModificada(object sender, SoundSourceAngleChangedEventArgs e)   //Método que actúa como controlador de evento SoundSourceAngleChanged
@@ -113,6 +114,7 @@ namespace kinectpruebasonido
             this.sourceGsPre.Offset = Math.Max(this.sourceGsMain.Offset - mitadAncho, 0);
             this.sourceGsPost.Offset = Math.Min(this.sourceGsMain.Offset+mitadAncho,1);
             fuenteRotacion.Angle = -e.Angle;
+            textoAnguloFuente.Text = string.Format(CultureInfo.CurrentCulture,Properties.Resources.FuenteSonido,e.Angle.ToString("0",CultureInfo.CurrentCulture));
         }
         
         private void CanalLecturaAudio()    //Método que controla canal independiente para registro de sonidos
