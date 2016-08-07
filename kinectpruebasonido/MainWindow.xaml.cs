@@ -29,7 +29,7 @@ namespace kinectpruebasonido
     public partial class MainWindow : Window
     {   
         //Campos de clase principal
-        KinectSensor sensorActivo;   //Campo que es instancia de clase KinectSensor
+        KinectSensorChooser sensorEncendido = new KinectSensorChooser();    //Campo que es instancia de objeto KinectSensorChooser
         private const int intervaloPoleoAudio = 50; //Campo que define tiempo en ms entre cada lectura de audio
         private const int muestraPorMilisegundo = 16;   //Campo que define cantidad de muestras obtenidas cada milisegundo
         private const int bytesPorMuestra = 2;  //Campo que define número de bytes en cada muestra de audio
@@ -49,39 +49,40 @@ namespace kinectpruebasonido
 
         private void IniciarKinect(object sender, RoutedEventArgs e) //Método privado, estático y sin retorno que indica modo de iniciar la ventana principal
         {
-            foreach (var sensorPotencial in KinectSensor.KinectSensors)
-            {
-                if(sensorPotencial.Status == KinectStatus.Connected)
-                {
-                    this.sensorActivo = sensorPotencial;
-                    break;
-                }
-            }
+            this.sensorEncendido.KinectChanged += SensorDetectado;  //Controlador de evento KinectChanged
+            this.indicadorKinect.KinectSensorChooser = this.sensorEncendido;    //Relacionar estado de sensor con logo indicador
+            this.sensorEncendido.Start();   //Encender sensor kinect
 
-            if(null != this.sensorActivo)
+            if(this.sensorEncendido.Kinect == null)
             {
-                try
-                {
-                    this.sensorActivo.Start();
-                    this.sensorActivo.AudioSource.BeamAngleChanged += this.CampoAudioModificado; //Controlador de evento BeamAngleChanged
-                    this.sensorActivo.AudioSource.SoundSourceAngleChanged += this.FuenteAudioModificada;  //Controlador de evento SoundSourceAngleChanged
-                    this.registroAudio = this.sensorActivo.AudioSource.Start();  //Iniciar registro de audio
-
-                    //Iniciar canal separado para adquisición de audio
-                    this.lectura = true;    //Activar registro de audio
-                    this.canalLectura = new Thread(CanalLecturaAudio);  //Crear nuevo canal para registro de audio
-                    this.canalLectura.Start();  //Iniciar registro de audio
-                }
-                catch(IOException)
-                {
-                    this.sensorActivo = null;
-                }
+                this.textoBarraEstado.Text = string.Format(CultureInfo.CurrentCulture, Properties.Resources.NoKinectReady, this.sensorEncendido.RequiredConnectionId);
             }
-            if(null == this.sensorActivo)
+            
+            if(this.sensorEncendido.Status.Equals(KinectStatus.Connected))
             {
-                this.textoBarraEstado.Text = Properties.Resources.NoKinectReady;
+                this.textoBarraEstado.Text = string.Format(CultureInfo.CurrentCulture, Properties.Resources.KinectListo, this.sensorEncendido.RequiredConnectionId);
+                this.sensorEncendido.Kinect.AudioSource.BeamAngleChanged += this.CampoAudioModificado; //Controlador de evento BeamAngleChanged
+                this.sensorEncendido.Kinect.AudioSource.SoundSourceAngleChanged += this.FuenteAudioModificada;  //Controlador de evento SoundSourceAngleChanged
+                this.registroAudio = this.sensorEncendido.Kinect.AudioSource.Start();  //Iniciar registro de audio
+
+                //Iniciar canal separado para adquisición de audio
+                this.lectura = true;    //Activar registro de audio
+                this.canalLectura = new Thread(CanalLecturaAudio);  //Crear nuevo canal para registro de audio
+                this.canalLectura.Start();  //Iniciar registro de audio
             }
         }
+
+        private void SensorDetectado(object sender, KinectChangedEventArgs e)
+        {
+            if (e.NewSensor != null)    //Si nuevo sensor no es nulo
+            {
+                e.NewSensor.ColorStream.Enable(ColorImageFormat.RgbResolution640x480Fps30); //Cámara de color
+                e.NewSensor.DepthStream.Enable(DepthImageFormat.Resolution640x480Fps30);    //Cámara de profundidad
+                e.NewSensor.SkeletonStream.Enable();    //Rastreo de esqueleto
+                e.NewSensor.ColorStream.Enable(ColorImageFormat.InfraredResolution640x480Fps30);    //Cámara infrarroja
+            }
+        }
+        
 
         private void DetenerRegistroAudio(object sender, CancelEventArgs e) //Método para finalizar adquisición de audio
         {
@@ -90,13 +91,13 @@ namespace kinectpruebasonido
             {
                 canalLectura.Join();    //Detener ejecución de canal creado previamente
             }
-            if (null != this.sensorActivo)
+            if (null != this.sensorEncendido.Kinect)
             {
-                this.sensorActivo.AudioSource.BeamAngleChanged -= this.CampoAudioModificado; //Desenlazar controlador de evento BeamAngleChanged
-                this.sensorActivo.AudioSource.SoundSourceAngleChanged -= this.FuenteAudioModificada; //Desenlazar controlador de evento SoundSourceAngleChanged
-                this.sensorActivo.AudioSource.Stop();    //Detener registro de audio
-                this.sensorActivo.Stop();    //Inhabilitar sensor detectado
-                this.sensorActivo = null;
+                this.sensorEncendido.Kinect.AudioSource.BeamAngleChanged -= this.CampoAudioModificado; //Desenlazar controlador de evento BeamAngleChanged
+                this.sensorEncendido.Kinect.AudioSource.SoundSourceAngleChanged -= this.FuenteAudioModificada; //Desenlazar controlador de evento SoundSourceAngleChanged
+                this.sensorEncendido.Kinect.AudioSource.Stop();    //Detener registro de audio
+                this.sensorEncendido.Kinect.Stop();    //Inhabilitar sensor detectado
+                this.sensorEncendido.RequiredConnectionId = null;   //Forzar nueva búsqueda de sensor
             }
         }
 

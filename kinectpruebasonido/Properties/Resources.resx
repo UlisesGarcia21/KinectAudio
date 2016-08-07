@@ -123,6 +123,9 @@
   <data name="FuenteSonido" xml:space="preserve">
     <value>Angulo Fuente Sonido = {0} °</value>
   </data>
+  <data name="KinectListo" xml:space="preserve">
+    <value>Sensor {0} funcionando!!!</value>
+  </data>
   <data name="NoKinectReady" xml:space="preserve">
     <value>No hay sensor disponible!!!</value>
   </data>
