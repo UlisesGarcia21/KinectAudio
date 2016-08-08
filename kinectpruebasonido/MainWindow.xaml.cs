@@ -46,48 +46,25 @@ namespace kinectpruebasonido
         public VentanaPrincipal() //Constructor que inicia aplicación WPF
         {
             InitializeComponent();  //Iniciar componentes de ventana
+            this.sensorEncendido.Start();   //Comenzar búsqueda de sensor Kinect
         }
 
         private void IniciarKinect(object sender, RoutedEventArgs e) //Método privado, estático y sin retorno que indica modo de iniciar la ventana principal
         {
             this.sensorEncendido.KinectChanged += SensorDetectado;  //Controlador de evento KinectChanged
-            this.sensorEncendido.Start();   //Iniciar búsqueda de sensor Kinect
             this.indicadorKinect.KinectSensorChooser = this.sensorEncendido;    //Relacionar estado de sensor con logo indicador
-        }
+            this.sensorActivo = this.sensorEncendido.Kinect;
 
-        private void RegistroAudio(object sender, RoutedEventArgs e)
-        {
-            if (this.sensorActivo.Status.Equals(KinectStatus.Connected))
+            if (this.sensorActivo != null)
             {
                 this.sensorEncendido.Kinect.AudioSource.BeamAngleChanged += this.CampoAudioModificado; //Controlador de evento BeamAngleChanged
                 this.sensorEncendido.Kinect.AudioSource.SoundSourceAngleChanged += this.FuenteAudioModificada;  //Controlador de evento SoundSourceAngleChanged
-                this.registroAudio = this.sensorEncendido.Kinect.AudioSource.Start();  //Iniciar registro de audio
+                this.registroAudio = this.sensorActivo.AudioSource.Start();  //Iniciar registro de audio de sensor
 
                 //Iniciar canal separado para adquisición de audio
                 this.lectura = true;    //Activar registro de audio
                 this.canalLectura = new Thread(CanalLecturaAudio);  //Crear nuevo canal para registro de audio
                 this.canalLectura.Start();  //Iniciar registro de audio
-            }
-        }
-
-        private void SensorDetectado(object sender, KinectChangedEventArgs e)
-        {
-            if (e.NewSensor == null)
-            {
-                this.textoEstadoKinect.Text = string.Empty;
-                this.textoIDKinect.Text = string.Format(CultureInfo.CurrentCulture, Properties.Resources.NoKinectReady, this.sensorEncendido.RequiredConnectionId);
-                this.sensorActivo = null;
-            }
-
-            if (e.NewSensor != null)    //Si nuevo sensor no es nulo
-            {
-                this.textoIDKinect.Text = string.Empty;
-                this.textoEstadoKinect.Text = string.Format(CultureInfo.CurrentCulture, Properties.Resources.KinectListo, this.sensorEncendido.Status.ToString());
-                e.NewSensor.ColorStream.Enable(ColorImageFormat.RgbResolution640x480Fps30); //Cámara de color
-                e.NewSensor.DepthStream.Enable(DepthImageFormat.Resolution640x480Fps30);    //Cámara de profundidad
-                e.NewSensor.SkeletonStream.Enable();    //Rastreo de esqueleto
-                e.NewSensor.ColorStream.Enable(ColorImageFormat.InfraredResolution640x480Fps30);    //Cámara infrarroja
-                this.sensorActivo = this.sensorEncendido.Kinect;    //Encender kinect
             }
         }
 
@@ -115,10 +92,10 @@ namespace kinectpruebasonido
             }
             if (null != this.sensorActivo)
             {
-                this.sensorEncendido.Kinect.AudioSource.BeamAngleChanged -= this.CampoAudioModificado; //Desenlazar controlador de evento BeamAngleChanged
-                this.sensorEncendido.Kinect.AudioSource.SoundSourceAngleChanged -= this.FuenteAudioModificada; //Desenlazar controlador de evento SoundSourceAngleChanged
-                this.sensorEncendido.Kinect.AudioSource.Stop();    //Detener registro de audio
-                this.sensorEncendido.Kinect.Stop();    //Inhabilitar sensor detectado
+                this.sensorActivo.AudioSource.BeamAngleChanged -= this.CampoAudioModificado; //Desenlazar controlador de evento BeamAngleChanged
+                this.sensorActivo.AudioSource.SoundSourceAngleChanged -= this.FuenteAudioModificada; //Desenlazar controlador de evento SoundSourceAngleChanged
+                this.sensorActivo.AudioSource.Stop();    //Detener registro de audio
+                this.sensorActivo.Stop();    //Inhabilitar sensor detectado
                 this.sensorActivo = null;   //Detener registro de información
             }
         }
@@ -137,6 +114,30 @@ namespace kinectpruebasonido
             this.sourceGsPost.Offset = Math.Min(this.sourceGsMain.Offset+mitadAncho,1);
             fuenteRotacion.Angle = -e.Angle;
             textoAnguloFuente.Text = string.Format(CultureInfo.CurrentCulture,Properties.Resources.FuenteSonido,e.Angle.ToString("0",CultureInfo.CurrentCulture));
+        }
+
+        private void SensorDetectado(object sender, KinectChangedEventArgs e)
+        {
+            this.sensorEncendido.Start();   //Iniciar búsqueda de sensor Kinect
+
+            if (e.NewSensor == null)
+            {
+                this.textoEstadoKinect.Text = string.Empty;
+                this.textoIDKinect.Text = string.Format(CultureInfo.CurrentCulture, Properties.Resources.NoKinectReady, this.sensorEncendido.RequiredConnectionId);
+                this.sensorActivo = e.NewSensor;
+            }
+
+            if (e.NewSensor != null)    //Si nuevo sensor no es nulo
+            {
+                this.sensorActivo = e.NewSensor;
+                this.textoIDKinect.Text = string.Empty;
+                this.textoEstadoKinect.Text = string.Format(CultureInfo.CurrentCulture, Properties.Resources.KinectListo, this.sensorEncendido.Status.ToString());
+                e.NewSensor.ColorStream.Enable(ColorImageFormat.RgbResolution640x480Fps30); //Cámara de color
+                e.NewSensor.DepthStream.Enable(DepthImageFormat.Resolution640x480Fps30);    //Cámara de profundidad
+                e.NewSensor.SkeletonStream.Enable();    //Rastreo de esqueleto
+                e.NewSensor.ColorStream.Enable(ColorImageFormat.InfraredResolution640x480Fps30);    //Cámara infrarroja
+                this.sensorActivo.Start();   //Iniciar registro de cámaras de sensor kinect
+            }
         }
     }
 }
