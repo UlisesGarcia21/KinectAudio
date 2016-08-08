@@ -26,10 +26,11 @@ namespace kinectpruebasonido
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     /// 
-    public partial class MainWindow : Window
+    public partial class VentanaPrincipal : Window
     {   
         //Campos de clase principal
         KinectSensorChooser sensorEncendido = new KinectSensorChooser();    //Campo que es instancia de objeto KinectSensorChooser
+        KinectSensor sensorActivo;  //Campo que permite control de sensor Kinect
         private const int intervaloPoleoAudio = 50; //Campo que define tiempo en ms entre cada lectura de audio
         private const int muestraPorMilisegundo = 16;   //Campo que define cantidad de muestras obtenidas cada milisegundo
         private const int bytesPorMuestra = 2;  //Campo que define número de bytes en cada muestra de audio
@@ -42,7 +43,7 @@ namespace kinectpruebasonido
         private bool lectura;   //Campo que permite activar o desactivar la captura de sonido
         private Thread canalLectura;     //Campo que hace referencia a conducto independiente de adquisición de sonido
 
-        public MainWindow() //Constructor que inicia aplicación WPF
+        public VentanaPrincipal() //Constructor que inicia aplicación WPF
         {
             InitializeComponent();  //Iniciar componentes de ventana
         }
@@ -50,17 +51,14 @@ namespace kinectpruebasonido
         private void IniciarKinect(object sender, RoutedEventArgs e) //Método privado, estático y sin retorno que indica modo de iniciar la ventana principal
         {
             this.sensorEncendido.KinectChanged += SensorDetectado;  //Controlador de evento KinectChanged
+            this.sensorEncendido.Start();   //Iniciar búsqueda de sensor Kinect
             this.indicadorKinect.KinectSensorChooser = this.sensorEncendido;    //Relacionar estado de sensor con logo indicador
-            this.sensorEncendido.Start();   //Encender sensor kinect
+        }
 
-            if(this.sensorEncendido.Kinect == null)
+        private void RegistroAudio(object sender, RoutedEventArgs e)
+        {
+            if (this.sensorActivo.Status.Equals(KinectStatus.Connected))
             {
-                this.textoBarraEstado.Text = string.Format(CultureInfo.CurrentCulture, Properties.Resources.NoKinectReady, this.sensorEncendido.RequiredConnectionId);
-            }
-            
-            if(this.sensorEncendido.Status.Equals(KinectStatus.Connected))
-            {
-                this.textoBarraEstado.Text = string.Format(CultureInfo.CurrentCulture, Properties.Resources.KinectListo, this.sensorEncendido.RequiredConnectionId);
                 this.sensorEncendido.Kinect.AudioSource.BeamAngleChanged += this.CampoAudioModificado; //Controlador de evento BeamAngleChanged
                 this.sensorEncendido.Kinect.AudioSource.SoundSourceAngleChanged += this.FuenteAudioModificada;  //Controlador de evento SoundSourceAngleChanged
                 this.registroAudio = this.sensorEncendido.Kinect.AudioSource.Start();  //Iniciar registro de audio
@@ -74,15 +72,39 @@ namespace kinectpruebasonido
 
         private void SensorDetectado(object sender, KinectChangedEventArgs e)
         {
+            if (e.NewSensor == null)
+            {
+                this.textoEstadoKinect.Text = string.Empty;
+                this.textoIDKinect.Text = string.Format(CultureInfo.CurrentCulture, Properties.Resources.NoKinectReady, this.sensorEncendido.RequiredConnectionId);
+                this.sensorActivo = null;
+            }
+
             if (e.NewSensor != null)    //Si nuevo sensor no es nulo
             {
+                this.textoIDKinect.Text = string.Empty;
+                this.textoEstadoKinect.Text = string.Format(CultureInfo.CurrentCulture, Properties.Resources.KinectListo, this.sensorEncendido.Status.ToString());
                 e.NewSensor.ColorStream.Enable(ColorImageFormat.RgbResolution640x480Fps30); //Cámara de color
                 e.NewSensor.DepthStream.Enable(DepthImageFormat.Resolution640x480Fps30);    //Cámara de profundidad
                 e.NewSensor.SkeletonStream.Enable();    //Rastreo de esqueleto
                 e.NewSensor.ColorStream.Enable(ColorImageFormat.InfraredResolution640x480Fps30);    //Cámara infrarroja
+                this.sensorActivo = this.sensorEncendido.Kinect;    //Encender kinect
             }
         }
-        
+
+        private void CanalLecturaAudio()    //Método que controla canal independiente para registro de sonidos
+        {
+            while (this.lectura) //Mientras el campo lectura sea verdadero
+            {
+                int conteoLectura = registroAudio.Read(bufferAudio, 0, bufferAudio.Length);
+                lock (this.bloqueoEnergia)
+                {
+                    for (int i = 0; i < conteoLectura; i += 2)
+                    {
+                        short muestraAudio = BitConverter.ToInt16(bufferAudio, i);
+                    }
+                }
+            }
+        }
 
         private void DetenerRegistroAudio(object sender, CancelEventArgs e) //Método para finalizar adquisición de audio
         {
@@ -91,13 +113,13 @@ namespace kinectpruebasonido
             {
                 canalLectura.Join();    //Detener ejecución de canal creado previamente
             }
-            if (null != this.sensorEncendido.Kinect)
+            if (null != this.sensorActivo)
             {
                 this.sensorEncendido.Kinect.AudioSource.BeamAngleChanged -= this.CampoAudioModificado; //Desenlazar controlador de evento BeamAngleChanged
                 this.sensorEncendido.Kinect.AudioSource.SoundSourceAngleChanged -= this.FuenteAudioModificada; //Desenlazar controlador de evento SoundSourceAngleChanged
                 this.sensorEncendido.Kinect.AudioSource.Stop();    //Detener registro de audio
                 this.sensorEncendido.Kinect.Stop();    //Inhabilitar sensor detectado
-                this.sensorEncendido.RequiredConnectionId = null;   //Forzar nueva búsqueda de sensor
+                this.sensorActivo = null;   //Detener registro de información
             }
         }
 
@@ -116,21 +138,5 @@ namespace kinectpruebasonido
             fuenteRotacion.Angle = -e.Angle;
             textoAnguloFuente.Text = string.Format(CultureInfo.CurrentCulture,Properties.Resources.FuenteSonido,e.Angle.ToString("0",CultureInfo.CurrentCulture));
         }
-        
-        private void CanalLecturaAudio()    //Método que controla canal independiente para registro de sonidos
-        {
-            while(this.lectura) //Mientras el campo lectura sea verdadero
-            {
-                int conteoLectura = registroAudio.Read(bufferAudio,0,bufferAudio.Length);
-                lock(this.bloqueoEnergia)
-                {
-                    for (int i = 0; i < conteoLectura; i += 2)
-                    {
-                        short muestraAudio = BitConverter.ToInt16(bufferAudio, i);
-                    }
-                }
-            }
-        }
-
     }
 }
