@@ -27,7 +27,7 @@ namespace kinectpruebasonido
     /// </summary>
     /// 
     public partial class VentanaPrincipal : Window
-    {   
+    {
         //Campos de clase principal
         KinectSensorChooser sensorEncendido = new KinectSensorChooser();    //Campo que es instancia de objeto KinectSensorChooser
         KinectSensor sensorActivo;  //Campo que permite control de sensor Kinect
@@ -36,9 +36,9 @@ namespace kinectpruebasonido
         private const int bytesPorMuestra = 2;  //Campo que define número de bytes en cada muestra de audio
         private readonly byte[] bufferAudio = new byte[intervaloPoleoAudio * muestraPorMilisegundo * bytesPorMuestra];  //Campo de buffer para almacenar datos de registro de audio
 
-        private readonly double[] energia = new double[(uint)(780*1.25)];   //Campo para buffer que almacena datos de energía conforme se lee el audio
+        private readonly double[] energia = new double[(uint)(780 * 1.25)];   //Campo para buffer que almacena datos de energía conforme se lee el audio
         private readonly object bloqueoEnergia = new object();  //Campo que hace referencia a un objeto que asegura buffer de energía para sincronización de canales
-        
+
         private Stream registroAudio; //Campo que hace referencia a clase Stream de System.IO
         private bool lectura;   //Campo que permite activar o desactivar la captura de sonido
         private Thread canalLectura;     //Campo que hace referencia a conducto independiente de adquisición de sonido
@@ -54,18 +54,6 @@ namespace kinectpruebasonido
             this.sensorEncendido.KinectChanged += SensorDetectado;  //Controlador de evento KinectChanged
             this.indicadorKinect.KinectSensorChooser = this.sensorEncendido;    //Relacionar estado de sensor con logo indicador
             this.sensorActivo = this.sensorEncendido.Kinect;
-
-            if (this.sensorActivo != null)
-            {
-                this.sensorEncendido.Kinect.AudioSource.BeamAngleChanged += this.CampoAudioModificado; //Controlador de evento BeamAngleChanged
-                this.sensorEncendido.Kinect.AudioSource.SoundSourceAngleChanged += this.FuenteAudioModificada;  //Controlador de evento SoundSourceAngleChanged
-                this.registroAudio = this.sensorActivo.AudioSource.Start();  //Iniciar registro de audio de sensor
-
-                //Iniciar canal separado para adquisición de audio
-                this.lectura = true;    //Activar registro de audio
-                this.canalLectura = new Thread(CanalLecturaAudio);  //Crear nuevo canal para registro de audio
-                this.canalLectura.Start();  //Iniciar registro de audio
-            }
         }
 
         private void CanalLecturaAudio()    //Método que controla canal independiente para registro de sonidos
@@ -123,7 +111,7 @@ namespace kinectpruebasonido
             if (e.NewSensor == null)
             {
                 this.textoEstadoKinect.Text = string.Empty;
-                this.textoIDKinect.Text = string.Format(CultureInfo.CurrentCulture, Properties.Resources.NoKinectReady, this.sensorEncendido.RequiredConnectionId);
+                this.textoIDKinect.Text = string.Format(CultureInfo.CurrentCulture, Properties.Resources.Reiniciar, 0);
                 this.sensorActivo = e.NewSensor;
             }
 
@@ -137,6 +125,23 @@ namespace kinectpruebasonido
                 e.NewSensor.SkeletonStream.Enable();    //Rastreo de esqueleto
                 e.NewSensor.ColorStream.Enable(ColorImageFormat.InfraredResolution640x480Fps30);    //Cámara infrarroja
                 this.sensorActivo.Start();   //Iniciar registro de cámaras de sensor kinect
+            }
+
+            if (this.sensorActivo != null)
+            {
+                this.sensorEncendido.Kinect.AudioSource.BeamAngleChanged += this.CampoAudioModificado; //Controlador de evento BeamAngleChanged
+                this.sensorEncendido.Kinect.AudioSource.SoundSourceAngleChanged += this.FuenteAudioModificada;  //Controlador de evento SoundSourceAngleChanged
+                this.registroAudio = this.sensorActivo.AudioSource.Start();  //Iniciar registro de audio de sensor
+
+                //Iniciar canal separado para adquisición de audio
+                this.lectura = true;    //Activar registro de audio
+                this.canalLectura = new Thread(CanalLecturaAudio);  //Crear nuevo canal para registro de audio
+                this.canalLectura.Start();  //Iniciar registro de audio
+            }
+            else
+            {
+                this.textoEstadoKinect.Text = string.Empty;
+                this.textoIDKinect.Text = string.Format(CultureInfo.CurrentCulture, Properties.Resources.Reiniciar, 0);
             }
         }
     }

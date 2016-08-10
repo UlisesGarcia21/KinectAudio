@@ -14,7 +14,7 @@
     <DockPanel Height="50" VerticalAlignment="Top" Width="750">
         <k:KinectSensorChooserUI Name="indicadorKinect" HorizontalAlignment="Center"/>
         <TextBlock Name="textoEstadoKinect" Height="50" Width="200" FontFamily="Arial" FontSize="15"/>
-        <TextBlock Name="textoIDKinect" Height="50" Width="200" HorizontalAlignment="Right" FontFamily="Arial" FontSize="15"/>
+        <TextBlock Name="textoIDKinect" Height="50" Width="400" HorizontalAlignment="Right" FontFamily="Arial" FontSize="15"/>
     </DockPanel>
         <Viewbox Height="300" Width="750" Margin="0,75,0,0">
             <Canvas Height="0.52" Width="1">

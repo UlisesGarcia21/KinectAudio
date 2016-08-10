@@ -95,5 +95,14 @@ namespace kinectpruebasonido.Properties {
                 return ResourceManager.GetString("NoKinectReady", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Favor de conectar sensor y reiniciar programa.
+        /// </summary>
+        internal static string Reiniciar {
+            get {
+                return ResourceManager.GetString("Reiniciar", resourceCulture);
+            }
+        }
     }
 }
