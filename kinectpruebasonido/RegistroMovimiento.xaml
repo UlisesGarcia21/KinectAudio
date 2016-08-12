@@ -1,0 +1,10 @@
+﻿<Window x:Class="kinectpruebasonido.RegistroMovimiento"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:k="http://schemas.microsoft.com/kinect/2013"
+        Title="RegistroMovimiento" Height="300" Width="300">
+    <k:KinectRegion Name="analisisMovimiento">
+        <Grid>
+        </Grid>
+    </k:KinectRegion>
+</Window>

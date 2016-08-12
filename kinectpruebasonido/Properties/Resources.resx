@@ -120,6 +120,12 @@
   <data name="CampoSonido" xml:space="preserve">
     <value>Angulo Campo Sonido = {0} °</value>
   </data>
+  <data name="ConfianzaSonido" xml:space="preserve">
+    <value>Confianza Fuente = {0}</value>
+  </data>
+  <data name="FraseInicial" xml:space="preserve">
+    <value>Repite Hola 3 veces</value>
+  </data>
   <data name="FuenteSonido" xml:space="preserve">
     <value>Angulo Fuente Sonido = {0} °</value>
   </data>
@@ -128,5 +134,11 @@
   </data>
   <data name="NoKinectReady" xml:space="preserve">
     <value>No hay sensor disponible!!!</value>
+  </data>
+  <data name="PosicionCorrecta" xml:space="preserve">
+    <value>Alto, posicion adecuada</value>
+  </data>
+  <data name="Reiniciar" xml:space="preserve">
+    <value>Favor de conectar sensor!!!</value>
   </data>
 </root>

@@ -54,6 +54,16 @@ namespace kinectpruebasonido
             this.sensorEncendido.KinectChanged += SensorDetectado;  //Controlador de evento KinectChanged
             this.indicadorKinect.KinectSensorChooser = this.sensorEncendido;    //Relacionar estado de sensor con logo indicador
             this.sensorActivo = this.sensorEncendido.Kinect;
+            if (this.sensorActivo == null)
+            {
+                this.textoEstadoKinect.Text = string.Empty;
+                this.textoIDKinect.Text = string.Format(CultureInfo.CurrentCulture, Properties.Resources.Reiniciar, 0);
+            }
+            else 
+            {
+                this.textoIDKinect.Text = string.Empty;
+                this.textoEstadoKinect.Text = string.Format(CultureInfo.CurrentCulture, Properties.Resources.KinectListo, this.sensorEncendido.Status.ToString());
+            }
         }
 
         private void CanalLecturaAudio()    //Método que controla canal independiente para registro de sonidos
@@ -102,6 +112,7 @@ namespace kinectpruebasonido
             this.sourceGsPost.Offset = Math.Min(this.sourceGsMain.Offset+mitadAncho,1);
             fuenteRotacion.Angle = -e.Angle;
             textoAnguloFuente.Text = string.Format(CultureInfo.CurrentCulture,Properties.Resources.FuenteSonido,e.Angle.ToString("0",CultureInfo.CurrentCulture));
+            textoAnguloConfianza.Text = string.Format(CultureInfo.CurrentCulture, Properties.Resources.ConfianzaSonido, e.ConfidenceLevel.ToString("0.00",CultureInfo.CurrentCulture));
         }
 
         private void SensorDetectado(object sender, KinectChangedEventArgs e)
