@@ -19,6 +19,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Resources;
 using System.Windows.Shapes;
+using System.Speech.AudioFormat;
+using System.Speech.Recognition;
 
 namespace kinectpruebasonido
 {
@@ -36,12 +38,14 @@ namespace kinectpruebasonido
         private const int bytesPorMuestra = 2;  //Campo que define número de bytes en cada muestra de audio
         private readonly byte[] bufferAudio = new byte[intervaloPoleoAudio * muestraPorMilisegundo * bytesPorMuestra];  //Campo de buffer para almacenar datos de registro de audio
 
-        private readonly double[] energia = new double[(uint)(780 * 1.25)];   //Campo para buffer que almacena datos de energía conforme se lee el audio
         private readonly object bloqueoEnergia = new object();  //Campo que hace referencia a un objeto que asegura buffer de energía para sincronización de canales
 
         private Stream registroAudio; //Campo que hace referencia a clase Stream de System.IO
         private bool lectura;   //Campo que permite activar o desactivar la captura de sonido
         private Thread canalLectura;     //Campo que hace referencia a conducto independiente de adquisición de sonido
+
+        private SpeechRecognitionEngine aparatoVoz; //Campo para instancia de SpeechRecognitionEngine que se utiliza para kinect como fuente de datos de audio
+        private List<Span> palabraReconocimiento;   //Lista de los elementos en UI que resaltarán con reconocimiento de voz 
 
         public VentanaPrincipal() //Constructor que inicia aplicación WPF
         {
@@ -54,12 +58,32 @@ namespace kinectpruebasonido
             this.sensorEncendido.KinectChanged += SensorDetectado;  //Controlador de evento KinectChanged
             this.indicadorKinect.KinectSensorChooser = this.sensorEncendido;    //Relacionar estado de sensor con logo indicador
             this.sensorActivo = this.sensorEncendido.Kinect;
+
             if (this.sensorActivo == null)
             {
                 this.textoEstadoKinect.Text = string.Empty;
                 this.textoIDKinect.Text = string.Format(CultureInfo.CurrentCulture, Properties.Resources.Reiniciar, 0);
             }
-            else 
+            else if(this.sensorActivo.Status.Equals(KinectStatus.Connected))
+            {
+                this.textoIDKinect.Text = string.Empty;
+                this.textoEstadoKinect.Text = string.Format(CultureInfo.CurrentCulture, Properties.Resources.KinectListo, this.sensorEncendido.Status.ToString());
+                this.sensorActivo.ColorStream.Enable(ColorImageFormat.RgbResolution640x480Fps30); //Cámara de color
+                this.sensorActivo.DepthStream.Enable(DepthImageFormat.Resolution640x480Fps30);    //Cámara de profundidad
+                this.sensorActivo.SkeletonStream.Enable();    //Rastreo de esqueleto
+                this.sensorActivo.ColorStream.Enable(ColorImageFormat.InfraredResolution640x480Fps30);    //Cámara infrarroja
+                this.sensorActivo.Start();   //Iniciar registro de cámaras de sensor kinect
+
+                this.sensorActivo.AudioSource.BeamAngleChanged += this.CampoAudioModificado; //Controlador de evento BeamAngleChanged
+                this.sensorActivo.AudioSource.SoundSourceAngleChanged += this.FuenteAudioModificada;  //Controlador de evento SoundSourceAngleChanged
+                this.registroAudio = this.sensorActivo.AudioSource.Start();  //Iniciar registro de audio de sensor
+
+                //Iniciar canal separado para adquisición de audio
+                this.lectura = true;    //Activar registro de audio
+                this.canalLectura = new Thread(CanalLecturaAudio);  //Crear nuevo canal para registro de audio
+                this.canalLectura.Start();  //Iniciar registro de audio
+            }
+            else
             {
                 this.textoIDKinect.Text = string.Empty;
                 this.textoEstadoKinect.Text = string.Format(CultureInfo.CurrentCulture, Properties.Resources.KinectListo, this.sensorEncendido.Status.ToString());
@@ -113,6 +137,17 @@ namespace kinectpruebasonido
             fuenteRotacion.Angle = -e.Angle;
             textoAnguloFuente.Text = string.Format(CultureInfo.CurrentCulture,Properties.Resources.FuenteSonido,e.Angle.ToString("0",CultureInfo.CurrentCulture));
             textoAnguloConfianza.Text = string.Format(CultureInfo.CurrentCulture, Properties.Resources.ConfianzaSonido, e.ConfidenceLevel.ToString("0.00",CultureInfo.CurrentCulture));
+
+            if((e.Angle <= 10 && e.Angle >= -10) && (e.ConfidenceLevel >= 0.8))
+            {
+                textoBarraEstado.Text = String.Format(CultureInfo.CurrentCulture, Properties.Resources.PosicionCorrecta);
+                textoFraseInicial.Text = String.Format(CultureInfo.CurrentCulture, Properties.Resources.FraseInicial);
+            }
+            else
+            {
+                textoBarraEstado.Text = String.Empty;
+                textoFraseInicial.Text = String.Empty;
+            }
         }
 
         private void SensorDetectado(object sender, KinectChangedEventArgs e)
