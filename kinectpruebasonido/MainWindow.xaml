@@ -2,7 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:k="http://schemas.microsoft.com/kinect/2013"
-        Title="VentanaPrincipal" Height="520" Width="750" Loaded="IniciarKinect" Closing="DetenerRegistroAudio">
+        Title="VentanaPrincipal" Height="520" Width="750" Loaded="IniciarKinect" Closing="DetenerRegistroAudio" 
+        Deactivated="DetenerVentana">
         <Window.Resources>
     <SolidColorBrush x:Key="MediumGreyBrush" Color="#ff6e6e6e"/>
     <Style TargetType="{x:Type Image}">
@@ -74,7 +75,9 @@
             <TextBox Name="textoAnguloFuente" FontSize="14" FontFamily="Arial" IsReadOnly="True" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">Angulo Fuente Sonido = 0 °</TextBox>
             <TextBox Name="textoAnguloConfianza" FontSize="14" FontFamily="Arial" IsReadOnly="True" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center">Confianza Fuente = 0</TextBox>
             <TextBlock Name="textoBarraEstado" FontSize="14" FontFamily="Arial" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Height="40" Width="200"/>
-            <TextBlock Name="textoFraseInicial" FontSize="14" FontFamily="Arial" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Height="40" Width="200"/>
+            <TextBlock Name="textoFraseInicial" FontSize="14" FontFamily="Arial" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Height="40" Width="200">
+                Decir 3 veces: "<Span Name="hola"> Hola</Span>"
+            </TextBlock>
         </Grid>
     </Canvas>
 </Window>
