@@ -2,8 +2,9 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:k="http://schemas.microsoft.com/kinect/2013"
+        WindowStartupLocation="CenterScreen"
         Title="VentanaPrincipal" Height="520" Width="750" Loaded="IniciarKinect" Closing="DetenerRegistroAudio" 
-        Deactivated="DetenerVentana">
+        Deactivated="DetenerVentana" Activated="ReiniciarSensor">
         <Window.Resources>
     <SolidColorBrush x:Key="MediumGreyBrush" Color="#ff6e6e6e"/>
     <Style TargetType="{x:Type Image}">

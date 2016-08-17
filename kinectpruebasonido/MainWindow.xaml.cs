@@ -89,9 +89,6 @@ namespace kinectpruebasonido
                 this.sensorActivo.ColorStream.Enable(ColorImageFormat.InfraredResolution640x480Fps30);    //Cámara infrarroja
                 this.sensorActivo.Start();   //Iniciar registro de cámaras de sensor kinect
 
-                this.textoIDKinect.Text = string.Empty;
-                this.textoEstadoKinect.Text = string.Format(CultureInfo.CurrentCulture, Properties.Resources.KinectListo, this.sensorEncendido.Status.ToString());
-
                 RecognizerInfo microfono = ConseguirKinectReconocedor();
                 if (null != microfono)
                 {
@@ -191,17 +188,21 @@ namespace kinectpruebasonido
 
                 ventana2.Owner = this;         //Ventana principal es dueño de ventana emergente
                 Nullable<bool> ventana2RM = ventana2.ShowDialog();    //Abrir ventana de análisis e ignorar principal hasta que cierra ventana emergente
-
-                if (this.IsActive)  //Pregunto si ventana principal está activa
-                {
-                    this.sensorEncendido.Start();   //Comenzar búsqueda de sensor Kinect
-                }
+                this.Close(); //Cerrar ventana
             }
             else
             {
                 textoBarraEstado.Text = String.Empty;
                 textoFraseInicial.Text = String.Empty;
             }
+        }
+
+        private void ReiniciarSensor(object sender, EventArgs e)
+        {
+
+            this.sensorEncendido.KinectChanged += SensorDetectado;  //Controlador de evento KinectChanged
+            this.indicadorKinect.KinectSensorChooser = this.sensorEncendido;    //Relacionar estado de sensor con logo indicador
+            this.sensorActivo = this.sensorEncendido.Kinect;
         }
 
         private void DetenerVentana(object sender, EventArgs e)

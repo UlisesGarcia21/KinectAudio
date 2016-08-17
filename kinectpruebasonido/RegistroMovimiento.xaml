@@ -2,9 +2,40 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:k="http://schemas.microsoft.com/kinect/2013"
-        Title="RegistroMovimiento" Height="300" Width="300">
-    <k:KinectRegion Name="analisisMovimiento">
-        <Grid>
+        WindowStartupLocation="CenterScreen"
+        Title="RegistroMovimiento" Height="700" Width="700" VerticalAlignment="Center" HorizontalAlignment="Center"
+        Activated="ActivarSensor">
+    <Canvas>
+    <Grid Height="100" VerticalAlignment="Top">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="350" Name="columnaUno"/>
+            <ColumnDefinition Width="350" Name="columnaDos"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50" Name="filaLogo"/>
+            <RowDefinition Height="50" Name="filaMensaje"/>
+        </Grid.RowDefinitions>
+        <k:KinectSensorChooserUI Grid.Column="0" Grid.Row="0" Name="logoKinect" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <TextBlock Name="mensajeKinect" Grid.Column="1" Grid.Row="0" FontFamily="Arial" FontSize="14"/>
+        <TextBlock Name="fraseInicial" Grid.Column="0" Grid.Row="1" FontFamily="Arial" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center">Decir 3 veces Hola</TextBlock>
+        <TextBlock Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Arial" FontSize="20"> <Span Name="hola"> Hola</Span></TextBlock>
+    </Grid>
+        <k:KinectRegion Name="regionKinect" Margin="0,100,0,0" Height="470" Width="690">
+            <DockPanel Name="visionUsuario">
+                <k:KinectUserViewer HorizontalAlignment="Right" Width="350" Name="visorUsuario"/>
+            </DockPanel>
+        </k:KinectRegion>
+        <Grid Name="datosUsuario" Height="100" Margin="0,570,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="350" Name="informacionDistancia"/>
+                <ColumnDefinition Width="350" Name="informacionAltura"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="50"/>
+                <RowDefinition Height="50"/>
+            </Grid.RowDefinitions>
+            <TextBlock Name="datoDistancia" FontFamily="Arial" FontSize="14" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center">Distancia: </TextBlock>
+            <TextBlock Name="datoAltura" FontFamily="Arial" FontSize="14" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">Altura: </TextBlock>
         </Grid>
-    </k:KinectRegion>
+    </Canvas>
 </Window>
