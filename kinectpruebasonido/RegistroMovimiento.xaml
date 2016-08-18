@@ -4,7 +4,7 @@
         xmlns:k="http://schemas.microsoft.com/kinect/2013"
         WindowStartupLocation="CenterScreen"
         Title="RegistroMovimiento" Height="700" Width="700" VerticalAlignment="Center" HorizontalAlignment="Center"
-        Activated="ActivarSensor">
+        Loaded="ActivarSensor" Closed="CerrarVentana">
     <Canvas>
     <Grid Height="100" VerticalAlignment="Top">
         <Grid.ColumnDefinitions>

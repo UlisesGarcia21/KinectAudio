@@ -30,23 +30,9 @@ namespace kinectpruebasonido
     /// 
     public partial class VentanaPrincipal : Window
     {
-        
-        private static RecognizerInfo ConseguirKinectReconocedor()  //Método que devuelve información de un reconocedor de voz
-        {
-            foreach (RecognizerInfo reconocedor in SpeechRecognitionEngine.InstalledRecognizers())
-            {
-                if(reconocedor.Culture.TwoLetterISOLanguageName.Equals("es"))
-                {
-                    return reconocedor;
-                }
-            }
-            return null;
-        }
-        
         //Campos de clase principal
         KinectSensorChooser sensorEncendido = new KinectSensorChooser();    //Campo que es instancia de objeto KinectSensorChooser
         KinectSensor sensorActivo;  //Campo que permite control de sensor Kinect
-        RegistroMovimiento ventana2 = new RegistroMovimiento();
                 
         private const int intervaloPoleoAudio = 50; //Campo que define tiempo en ms entre cada lectura de audio
         private const int muestraPorMilisegundo = 16;   //Campo que define cantidad de muestras obtenidas cada milisegundo
@@ -58,9 +44,6 @@ namespace kinectpruebasonido
         private Stream registroAudio; //Campo que hace referencia a clase Stream de System.IO
         private bool lectura;   //Campo que permite activar o desactivar la captura de sonido
         private Thread canalLectura;     //Campo que hace referencia a conducto independiente de adquisición de sonido
-
-        private SpeechRecognitionEngine aparatoVoz; //Campo para instancia de SpeechRecognitionEngine que se utiliza para kinect como fuente de datos de audio
-        private List<Span> palabraReconocimiento;   //Lista de los elementos en UI que resaltarán con reconocimiento de voz 
 
         public VentanaPrincipal() //Constructor que inicia aplicación WPF
         {
@@ -89,28 +72,9 @@ namespace kinectpruebasonido
                 this.sensorActivo.ColorStream.Enable(ColorImageFormat.InfraredResolution640x480Fps30);    //Cámara infrarroja
                 this.sensorActivo.Start();   //Iniciar registro de cámaras de sensor kinect
 
-                RecognizerInfo microfono = ConseguirKinectReconocedor();
-                if (null != microfono)
-                {
-                    palabraReconocimiento = new List<Span> { hola };
-                    this.aparatoVoz = new SpeechRecognitionEngine(microfono.Id);
-
-                    var palabrasReconocimiento = new Choices();
-                    palabrasReconocimiento.Add(new SemanticResultValue("Hola", "HOLA"));
-
-                    var gb = new GrammarBuilder { Culture = microfono.Culture };
-                    gb.Append(palabrasReconocimiento);
-                    var g = new Grammar(gb);
-                    aparatoVoz.LoadGrammar(g);
-
-                    aparatoVoz.SpeechRecognized += vozReconocida;
-                    aparatoVoz.SpeechRecognitionRejected += vozRechazada;
-                    this.registroAudio = this.sensorActivo.AudioSource.Start();
-                    aparatoVoz.SetInputToAudioStream(this.registroAudio, new SpeechAudioFormatInfo(EncodingFormat.Pcm, 16000, 16, 1, 32000, 2, null));
-                }
-
                 this.sensorActivo.AudioSource.BeamAngleChanged += this.CampoAudioModificado; //Controlador de evento BeamAngleChanged
                 this.sensorActivo.AudioSource.SoundSourceAngleChanged += this.FuenteAudioModificada;  //Controlador de evento SoundSourceAngleChanged
+                this.registroAudio = this.sensorActivo.AudioSource.Start();
 
                 //Iniciar canal separado para adquisición de audio
                 this.lectura = true;    //Activar registro de audio
@@ -149,21 +113,6 @@ namespace kinectpruebasonido
                 this.sensorActivo.Stop();    //Inhabilitar sensor detectado
                 this.sensorActivo = null;   //Detener registro de información
             }
-            if (null != this.aparatoVoz)
-            {
-                this.aparatoVoz.SpeechRecognized -= vozReconocida;
-                this.aparatoVoz.SpeechRecognitionRejected -= vozRechazada;
-                this.aparatoVoz.RecognizeAsyncStop();
-            }
-        }
-
-        private void LimpiarLetrasReconocidas()
-        {
-            foreach(Span span in palabraReconocimiento)
-            {
-                span.Foreground = Brushes.Black;
-                span.FontWeight = FontWeights.Normal;
-            }
         }
 
         private void CampoAudioModificado(object sender, BeamAngleChangedEventArgs e)   //Método que actúa como controlador de evento BeamAngleChanged
@@ -185,15 +134,14 @@ namespace kinectpruebasonido
             if((e.Angle <= 10 && e.Angle >= -10) && (e.ConfidenceLevel == 1))
             {
                 textoBarraEstado.Text = String.Format(CultureInfo.CurrentCulture, Properties.Resources.PosicionCorrecta);
-
-                ventana2.Owner = this;         //Ventana principal es dueño de ventana emergente
-                Nullable<bool> ventana2RM = ventana2.ShowDialog();    //Abrir ventana de análisis e ignorar principal hasta que cierra ventana emergente
-                this.Close(); //Cerrar ventana
+                RegistroMovimiento ventana2 = new RegistroMovimiento();
+                ventana2.Owner = this;
+                ventana2.ShowDialog();    //Abrir ventana de análisis e ignorar principal hasta que cierra ventana emergente
+                this.Deactivated += DetenerVentana; //Cerrar ventana
             }
             else
             {
                 textoBarraEstado.Text = String.Empty;
-                textoFraseInicial.Text = String.Empty;
             }
         }
 
@@ -207,40 +155,19 @@ namespace kinectpruebasonido
 
         private void DetenerVentana(object sender, EventArgs e)
         {
-            this.sensorActivo.Stop();
-        }
-
-        private void vozReconocida(object sender, SpeechRecognizedEventArgs e)
-        {
-            const double umbralConfianza = 0.3;
-            int i = 0;
-            LimpiarLetrasReconocidas();
-            if (e.Result.Confidence >= umbralConfianza)
+            this.lectura = false;   //Desactivar registro de audio
+            if (null != canalLectura)
             {
-                switch (e.Result.Semantics.Value.ToString())
-                {
-                    case "HOLA":
-                        hola.Foreground = Brushes.DeepSkyBlue;
-                        hola.FontWeight = FontWeights.Bold;
-                        i++;
-                        if(i==3)
-                        {
-                            RegistroMovimiento ventana2 = new RegistroMovimiento();
-                            ventana2.Owner = this;         //Ventana principal es dueño de ventana emergente
-                            Nullable<bool> ventana2RM = ventana2.ShowDialog();    //Abrir ventana de análisis e ignorar principal hasta que cierra ventana emergente
-                            if (this.IsActive)  //Pregunto si ventana principal está activa
-                            {
-                                this.sensorActivo.Start(); //Si lo está, activa sensor de nueva cuenta
-                            }
-                        }
-                        break;
-                }
+                canalLectura.Join();    //Detener ejecución de canal creado previamente
             }
-        }
-
-        private void vozRechazada(object sender, SpeechRecognitionRejectedEventArgs e)
-        {
-            LimpiarLetrasReconocidas();
+            if (null != this.sensorActivo)
+            {
+                this.sensorActivo.AudioSource.BeamAngleChanged -= this.CampoAudioModificado; //Desenlazar controlador de evento BeamAngleChanged
+                this.sensorActivo.AudioSource.SoundSourceAngleChanged -= this.FuenteAudioModificada; //Desenlazar controlador de evento SoundSourceAngleChanged
+                this.sensorActivo.AudioSource.Stop();    //Detener registro de audio
+                this.sensorActivo.Stop();    //Inhabilitar sensor detectado
+                this.sensorActivo = null;   //Detener registro de información
+            }
         }
 
         private void SensorDetectado(object sender, KinectChangedEventArgs e)
@@ -264,26 +191,6 @@ namespace kinectpruebasonido
                 e.NewSensor.SkeletonStream.Enable();    //Rastreo de esqueleto
                 e.NewSensor.ColorStream.Enable(ColorImageFormat.InfraredResolution640x480Fps30);    //Cámara infrarroja
                 this.sensorActivo.Start();   //Iniciar registro de cámaras de sensor kinect
-
-                RecognizerInfo microfono = ConseguirKinectReconocedor();
-                if (null != microfono)
-                {
-                    palabraReconocimiento = new List<Span> { hola };
-                    this.aparatoVoz = new SpeechRecognitionEngine(microfono.Id);
-
-                    var palabrasReconocimiento = new Choices();
-                    palabrasReconocimiento.Add(new SemanticResultValue("Hola", "HOLA"));
-
-                    var gb = new GrammarBuilder { Culture = microfono.Culture };
-                    gb.Append(palabrasReconocimiento);
-                    var g = new Grammar(gb);
-                    aparatoVoz.LoadGrammar(g);
-
-                    aparatoVoz.SpeechRecognized += vozReconocida;
-                    aparatoVoz.SpeechRecognitionRejected += vozRechazada;
-                    this.registroAudio = this.sensorActivo.AudioSource.Start();
-                    aparatoVoz.SetInputToAudioStream(this.registroAudio, new SpeechAudioFormatInfo(EncodingFormat.Pcm, 16000, 16, 1, 32000, 2, null));
-                }
 
                 this.registroAudio = this.sensorActivo.AudioSource.Start();
                 this.sensorActivo.AudioSource.BeamAngleChanged += this.CampoAudioModificado; //Controlador de evento BeamAngleChanged

@@ -76,9 +76,6 @@
             <TextBox Name="textoAnguloFuente" FontSize="14" FontFamily="Arial" IsReadOnly="True" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">Angulo Fuente Sonido = 0 °</TextBox>
             <TextBox Name="textoAnguloConfianza" FontSize="14" FontFamily="Arial" IsReadOnly="True" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center">Confianza Fuente = 0</TextBox>
             <TextBlock Name="textoBarraEstado" FontSize="14" FontFamily="Arial" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Height="40" Width="200"/>
-            <TextBlock Name="textoFraseInicial" FontSize="14" FontFamily="Arial" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Height="40" Width="200">
-                Decir 3 veces: "<Span Name="hola"> Hola</Span>"
-            </TextBlock>
         </Grid>
     </Canvas>
 </Window>
